@@ -8,15 +8,42 @@ class Cloud:
         
         if uniform:
             self.point_array = generateUniformCloud(D,N,L)
-            self.density_array = np.zeros(0)
+            self.density_array = densityFunc(x,y,z,L,C)
         if not uniform:
             self.point_array = generateCloud(D,N,L)
-            self.density_array = np.zeros(0)
+            self.density_array = densityFunc(x,y,z,L,C)
         if full_cloud:
             self.point_array = generateFullCloud(D,N,L)
-            self.density_array = np.zeros(0)
+            self.density_array = densityFunc(x,y,z,L,C)
 
-   
+def densityFunc(x,y,z,L,C):
+    #C is the number of cubes per axis length L
+    density = np.zeros([C,C,C])
+    
+    boundx = np.linspace(0.0,L,C+1)
+    boundy = np.linspace(0.0,L,C+1)
+    boundz = np.linspace(0.0,L,C+1)
+    #print(boundx)
+    
+    for k in range(C):
+        zcondb = z > boundz[k] 
+        zconda = z < boundz[k+1]
+        zcond = np.logical_and(zcondb,zconda)
+        for i in range(C):
+            xcondb = x > boundx[i] 
+            xconda = x < boundx[i+1]
+            xcond = np.logical_and(xcondb,xconda)
+            for j in range(C):
+                ycondb = y > boundy[j] 
+                yconda = y < boundy[j+1]
+                ycond = np.logical_and(ycondb,yconda)
+                
+                #print(np.all([xcond,ycond,zcond]))
+                cond = np.logical_and(np.logical_and(xcond,ycond),zcond)
+                #print(cond)
+                density[i,j,k] = np.sum(cond)
+    
+    return density   
 
 def generateUniformCloud(D,N,L):
     return np.zeros(0)
