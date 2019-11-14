@@ -44,12 +44,12 @@ def hardWallBound(arr,L):
     
     return cloud
 
-def generateUniformCloud(D,N,L):
+def generateUniformCloud(D,N,L,C):
     dummy = np.zeros([1,3])
     density = np.zeros([C,C,C]) + 10.0
     return dummy , density
 
-def generateFullCloud(D,N,L):
+def generateFullCloud(D,N,L,C):
     return np.zeros(0)
 
 def generateCloud(D,N,L,C):
