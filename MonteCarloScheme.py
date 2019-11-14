@@ -10,8 +10,22 @@ def sky(L,pos,tol):
         return 0
 
 def matSci(lmbda,mat):
-    #Returns the sigma and albedeo grain values based on the wavelength and materials
-    return 0
+    #Returns the sigma, albedeo, and cos(theta) grain values based on the wavelength and materials (*no material dependence yet*)
+    #Uses linear interpolation to return parameters
+    data = np.loadtxt('dustdata.txt')
+    lam = data[:,0]
+    albedogrid = data[:,1]
+    ggrid = data[:,2]
+    
+    falb = interpolate.interp1d(lam,albedogrid)
+    albedo = falb(lmbda)
+    
+    fg = interpolate.interp1d(lam,ggrid)
+    g = fg(lmbda)
+    
+    sigma = 0.
+
+    return sigma,albedo,g
 
 def genDirection(khat,g):
     theta = 0.0
