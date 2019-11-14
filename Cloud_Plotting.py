@@ -26,6 +26,6 @@ for s, e in combinations(np.array(list(product(r, r, r))), 2):
 #x = L/2*np.cos(u)*np.sin(v) + L/2
 #y = L/2*np.sin(u)*np.sin(v) + L/2
 #z = L/2*np.cos(v) + L/2
-#ax.plot_wireframe(x, y, z, color="m")
+#ax.plot_wireframe(x, y, z, color="gray",alpha = 0.5)
 
 plt.show()
