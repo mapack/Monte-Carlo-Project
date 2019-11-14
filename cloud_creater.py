@@ -12,13 +12,10 @@ class Cloud:
         
         if uniform:
             self.point_array = generateUniformCloud(D,N,L,C)
-            #self.density_array = densityFunc(self.point_array,L,C)
         if not uniform:
             self.point_array = generateCloud(D,N,L,C)
-            #self.density_array = densityFunc(self.point_array,L,C)
         if full_cloud:
             self.point_array = generateFullCloud(D,N,L,C)
-            #self.density_array = densityFunc(self.point_array,L,C)
 
 def hardWallBound(arr,L):
     x = arr[:,0]
@@ -50,38 +47,10 @@ def hardWallBound(arr,L):
     
     return cloud
 
-def densityFunc(arr,L,C):
-    #C is the number of cubes per axis length L
-    x,y,z = np.squeeze(arr[:,0]),np.squeeze(arr[:,1]),np.squeeze(arr[:,2])
-    density = np.zeros([C,C,C])
-    
-    boundx = np.linspace(0.0,L,C+1)
-    boundy = np.linspace(0.0,L,C+1)
-    boundz = np.linspace(0.0,L,C+1)
-    #print(boundx)
-    
-    for k in range(C):
-        zcondb = z > boundz[k] 
-        zconda = z < boundz[k+1]
-        zcond = np.logical_and(zcondb,zconda)
-        for i in range(C):
-            xcondb = x > boundx[i] 
-            xconda = x < boundx[i+1]
-            xcond = np.logical_and(xcondb,xconda)
-            for j in range(C):
-                ycondb = y > boundy[j] 
-                yconda = y < boundy[j+1]
-                ycond = np.logical_and(ycondb,yconda)
-                
-                #print(np.all([xcond,ycond,zcond]))
-                cond = np.logical_and(np.logical_and(xcond,ycond),zcond)
-                #print(cond)
-                density[i,j,k] = np.sum(cond)
-    
-    return density   
-
 def generateUniformCloud(D,N,L):
-    return np.zeros(0)
+    dummy = np.zeros([1,3])
+    density = np.zeros([C,C,C]) + 10.0
+    return dummy , density
 
 def generateFullCloud(D,N,L):
     return np.zeros(0)
@@ -100,21 +69,18 @@ def generateCloud(D,N,L,C):
                 
     for n in range(N):
         __origin__ = np.copy(__p1__[n,:])
-        #print(origin)
         for m in range(N):
             __r2__ = np.random.uniform(-1,1,3)
             __p2__[m+n*N, :] = (L/(2*delta))*__r2__ + __origin__
                 
     for k in range(N**2):
         __origin__ = np.copy(__p2__[k,:])
-        #print(origin)
         for q in range(N):
             __r3__ = np.random.uniform(-1,1,3)
             __p3__[q+k*N, :] = (L/(2*delta))*__r3__ + __origin__
             
     for l in range(N**3):
         __origin__ = np.copy(__p3__[l,:])
-        #print(origin)
         for h in range(N):
             __r4__ = np.random.uniform(-1,1,3)
             __p4__[h+l*N, :] = (L/(2*delta))*__r4__ + __origin__
@@ -123,7 +89,6 @@ def generateCloud(D,N,L,C):
     cloud = np.concatenate((__p1__, __p2__, __p3__, __p4__), axis=0)
     cloudbn = hardWallBound(cloud,L)
     
-    #density = densityFunc(cloudbn,L,C)
     density = np.histogramdd(cloudbn,bins = (C,C,C),range=[(0,L),(0,L),(0,L)])
     print("The cluster lentgh: " + str(L/(2*delta)))
     
