@@ -1,8 +1,13 @@
 import numpy as np
 
-def sky(L,pos):
+def sky(L,pos,tol):
     #Equation for the sky  
-    return 0 
+    R = L/2
+    r = np.sqrt((pos[0]-R)**2+(pos[1]-R)**2+(pos[2]-R)**2)
+    if np.abs(R-r) < tol:
+        return 1
+    else: 
+        return 0
 
 def matSci(lmbda,mat):
     #Returns the sigma and albedeo grain values based on the wavelength and materials
@@ -15,35 +20,62 @@ def genDirection(khat,g):
     p = np.random.rand(2)
     theta =  ((1+g)**2 - ((1-g**2)/(1-g+2*g*p[0]))**2)/(2*g)
     phi = 2*np.pi*p[1]
-    k = khat * theta * phi # APPLY the new directions
+    k = np.zeros(2)
+    k[0] = theta
+    k[1] = phi
     
     return k
 
-def odsSample(pos,sigma,omega,g,density,tol,step,Kobs):
+def posUpdate(pos,khat,step):
+    theta = khat[0]
+    phi = khat[1]
+    npos = np.zeros(pos.shape)
+    npos[0] = pos + 0 #fix later
+    npos[1] = pos + 0
+    npos[2] = pos + 0
+    return npos
+
+def odsSample(pos,sigma,omega,g,density,tol,Kobs,**kwargs):
     oda = 0.0 
+    for key in kwargs:
+        if (key == 'oda'):
+            oda = kwargs[key]
+    
     C = density[0][0,0,:].size
     L = density[1][-1]
     khat = Kobs
     
-    while sky(L,pos): #a func that returns FALSE if breaks the sphere
-        p = np.random.rand(1)
+    if sky(pos,L,tol):
+        return oda
+    else:
+        p = np.random.rand(1)    
         ods = -np.log(p)
         odsp = 0.0
         
-        while np.abs(ods - odsp) <= tol:
+        #obtain local density 
+        location = np.histogramdd(pos,bins = (C,C,C),range=[(0,L),(0,L),(0,L)])
+        indx = np.transpose(np.nonzero(location[0]))
+        locDen = density[indx[0],indx[1],indx[2]]
+        
+        l = ods / (sigma * locDen)
+        lcube = 0 #write a function for this 
+        
+        if lcube < l:
             
-            location = np.histogramdd(pos,bins = (C,C,C),range=[(0,L),(0,L),(0,L)])
-            indx = np.transpose(np.nonzero(location))
-            locDen = density[indx[0],indx[1],indx[2]]
-            odsp += sigma * locDen * step #step is the maginitude of the displacement in khat direction
-            pos += step  #needs to be vectorized to incriment in the current direction khat
+        if lcube > l:
+            
+        if lcube == l:
+            odsp = sigma * locDen * l
+        #odsp += sigma * locDen * step #step is the maginitude of the displacement in khat direction
+        #pos += step  #needs to be vectorized to incriment in the current direction khat
         
         oda += (1/omega - 1)*odsp
         khat = genDirection(khat,g)
         
-    return oda
+        odsSample(pos,sigma,omega,g,density,tol,khat,oda = oda)
+        
 
-def monteCarlo(density,sig,mat,lmbda,Aobs,Kobs,M,step,tol):
+def monteCarlo(density,sig,mat,lmbda,Aobs,Kobs,M,tol):
     sigma,omega,g = matSci(lmbda,mat)
     K = Kobs.size
     intensities = np.zeros(Aobs.size)        
@@ -53,7 +85,7 @@ def monteCarlo(density,sig,mat,lmbda,Aobs,Kobs,M,step,tol):
         for k in range(K): 
             for m in range(M):
                 pos = Aobs[a]
-                oda = odsSample(pos,sigma,omega,g,density,tol,step,Kobs[k])
+                oda = odsSample(pos,sigma,omega,g,density,tol,Kobs[k])
                 W[k,m] = oda    
                     
         intensities[a] = 1/(K*M)*np.sum(W)           
