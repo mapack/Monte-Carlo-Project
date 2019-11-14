@@ -21,5 +21,11 @@ r = [0, L]
 for s, e in combinations(np.array(list(product(r, r, r))), 2):
     if np.sum(np.abs(s-e)) == r[1]-r[0]:
         ax.plot3D(*zip(s, e), color="b")
+        
+#u, v = np.mgrid[0:2*np.pi:20j, 0:np.pi:10j]
+#x = L/2*np.cos(u)*np.sin(v) + L/2
+#y = L/2*np.sin(u)*np.sin(v) + L/2
+#z = L/2*np.cos(v) + L/2
+#ax.plot_wireframe(x, y, z, color="m")
 
 plt.show()
