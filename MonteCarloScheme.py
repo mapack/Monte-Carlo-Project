@@ -21,20 +21,30 @@ def matSci(lmbda,mat):
         g = 0.6
         sigma = 4.1666
         
-    else:    
+    else:
+        #Loading model data
         data = np.loadtxt('dustdata.txt')
         lam = data[:,0]
         albedogrid = data[:,1]
         ggrid = data[:,2]
-        
+        ext = data[:,3]
+        absorp = data[:,4]
+       
+        #Converts absorption coeffiecients to cm^2 per H nucleon
+        absorp *= 1.87e-26
+        #Calculates scattering coeeffiecients
+        sigmagrid = ext - absorp
+       
+        #Interpolation of sigma, albedo, g using model grids
         falb = interpolate.interp1d(lam,albedogrid)
         albedo = falb(lmbda)
         
         fg = interpolate.interp1d(lam,ggrid)
         g = fg(lmbda)
         
-        sigma = 0
-
+        fsig = interpolate.interp1d(lam,sigmagrid)
+        sigma = fsig(lmbda)
+        
     return sigma,albedo,g
 
 def genDirection(khat,g):
