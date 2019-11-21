@@ -10,7 +10,7 @@ def sky(pos,L,tol):
     if np.abs(R-r) < tol:
         return 0
     elif r > R:
-        return (r-R)
+        return (r - R)
     else: 
         return 1
 
@@ -20,7 +20,7 @@ def matSci(lmbda,mat):
     if mat == 'test':
         albedo = 0.6
         g = 0.6
-        sigma = 4.1666
+        sigma = 49.342
         
     else:
         #Loading model data
@@ -38,13 +38,13 @@ def matSci(lmbda,mat):
        
         #Interpolation of sigma, albedo, g using model grids
         falb = interpolate.interp1d(lam,albedogrid)
-        albedo = falb(lmbda)
+        albedo = float(falb(lmbda))
         
         fg = interpolate.interp1d(lam,ggrid)
-        g = fg(lmbda)
+        g = float(fg(lmbda))
         
         fsig = interpolate.interp1d(lam,sigmagrid)
-        sigma = fsig(lmbda)
+        sigma = float(fsig(lmbda))
         
     return sigma,albedo,g
 
@@ -71,12 +71,18 @@ def posUpdate(pos,khat,step):
     return npos
 
 def interpolateDen(pos,density,axmin,axmax,C,khat):
+    if sky(pos,axmax,1e-2) != 0 and sky(pos,axmax,1e-2) !=1:
+        return 0
+       
     x,y,z = pos[0],pos[1],pos[2]
     
     i = int((x-axmin)/(axmax-axmin)*(C-1.0))
     j = int((y-axmin)/(axmax-axmin)*(C-1.0))
     k = int((z-axmin)/(axmax-axmin)*(C-1.0))
     
+    if sky(pos,axmax,1e-2) == 0:
+        return density[i,j,k]
+        
     posPrime = posUpdate(pos,khat,np.sqrt(3))
     xprime,yprime,zprime = posPrime[0],posPrime[1],posPrime[2]
     
@@ -84,19 +90,10 @@ def interpolateDen(pos,density,axmin,axmax,C,khat):
     jprime = int((yprime-axmin)/(axmax-axmin)*(C-1.0))
     kprime = int((zprime-axmin)/(axmax-axmin)*(C-1.0))
     
-    if iprime >= 64:
-        iprime = i 
-    if jprime >= 64:
-        jprime = j 
-    if kprime >= 64:
-        kprime = k
-    
-#    avgDen = density[i,j,k]*(1-Wx)*(1-Wy)*(1-Wz) + density[iprime,j,k]*(Wx)*(1-Wy)*(1-Wz) 
-#    + density[i,jprime,k]*(1-Wx)*(Wy)*(1-Wz) + density[i,j,kprime]*(1-Wx)*(1-Wy)*(Wz) 
-#    + density[iprime,jprime,k]*(Wx)*(Wy)*(1-Wz) + density[iprime,j,kprime]*(Wx)*(1-Wy)*(Wz)
-#    + density[i,jprime,kprime]*(1-Wx)*(Wy)*(Wz) + density[iprime,jprime,kprime]*(Wx)*(Wy)*(Wz)
+    if sky(posPrime,axmax,1e-2) != 1:
+        return density[i,j,k]
         
-    avgDen = density[i,j,k]*0.79 + density[iprime,j,k]*0.03 + density[i,jprime,k]*0.03 + density[i,j,kprime]*0.03 + density[iprime,jprime,k]*0.03 + density[iprime,j,kprime]*0.03 + density[i,jprime,kprime]*0.03 + density[iprime,jprime,kprime]*0.03
+    avgDen = (density[i,j,k] + density[iprime,j,k] + density[i,jprime,k] + density[i,j,kprime] + density[iprime,jprime,k] + density[iprime,j,kprime] + density[i,jprime,kprime] + density[iprime,jprime,kprime])/8
     #print(avgDen)
     return np.abs(avgDen)
 
@@ -122,24 +119,25 @@ def odsSample(pos,sigma,omega,g,density,tol,khat):
 #            print(step)
             
             poscheck = posUpdate(pos,khat,step)
-            if sky(poscheck,L,tol) != 0 and sky(poscheck,L,tol) !=1:
+            if sky(poscheck,L,tol) != 1:
                 step -= sky(poscheck,L,tol)
                 odsp += sigma * den * step
+                oda += (1/omega - 1)*odsp
                 pos = posUpdate(pos,khat,step)
-#                print(pos)
-                break
+#                print('sky',pos)
+                return oda
                 
             elif step < np.sqrt(3):
                 odsp += sigma * den * step
                 pos = posUpdate(pos,khat,step)
-#                print(pos)
+#                print('<',pos)
                 break
             
             else:    
                 odsp += sigma * den * np.sqrt(3)
                 pos = posUpdate(pos,khat,np.sqrt(3))
                 ods -= sigma * den * np.sqrt(3)
-#                print(pos)
+#                print('>',pos)
             
         oda += (1/omega - 1)*odsp
         khat = genDirection(khat,g)
@@ -166,15 +164,21 @@ def monteCarlo(density,mat,lmbda,Aobs,Kobs,M,tol):
     print('time',(time.time()-t0))
     return intensities
 
-density = np.zeros([64,64,64]) + 0.15
-Aobs = np.zeros([1,3]) + 64.0/2
+density = np.zeros([64,64,64]) + 0.019
+Aobs = np.zeros([10,3]) + 32.0
+for i in range(10):
+    Aobs[i,2] += 2*i/(49.342*0.019)
 #print(Aobs)
-M = 1
-kobs = np.array([[0,0]])#,
-#                 [np.pi/2,0],
-#                 [np.pi/2,np.pi/2],
-#                 [np.pi/2,np.pi],
-#                 [np.pi/2,-np.pi/2],
-#                 [np.pi/2,-np.pi]])
+M = 10
+kobs = np.array([[0,0],
+                 [np.pi/2,0],
+                 [np.pi/2,np.pi/2],
+                 [np.pi/2,np.pi],
+                 [np.pi/2,-np.pi/2],
+                 [np.pi/2,-np.pi]])
 
-print('intensitiy' , monteCarlo(density,'test',400e-5,Aobs,kobs,M,1e-2))
+toh = np.arange(0,10)*2
+intensity = monteCarlo(density,'test',400e-5,Aobs,kobs,M,1e-2)
+print('intensitiy' , intensity)
+plt.figure()
+plt.scatter(toh,intensity)
