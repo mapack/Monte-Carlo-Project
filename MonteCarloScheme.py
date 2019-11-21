@@ -170,15 +170,14 @@ for i in range(10):
     Aobs[i,2] += 2*i/(49.342*0.019)
 #print(Aobs)
 M = 10
-kobs = np.array([[0,0],
-                 [np.pi/2,0],
-                 [np.pi/2,np.pi/2],
-                 [np.pi/2,np.pi],
-                 [np.pi/2,-np.pi/2],
-                 [np.pi/2,-np.pi]])
+theta, phi = np.mgrid[0:np.pi:90j, 0:2*np.pi:90j]
+Kobs = np.zeros([8100,2]) 
+for i in range(90):
+    Kobs[90*i:90*i+90,0] = theta[0][i] 
+    Kobs[90*i:90*i+90,1] = phi[0][:]
 
 toh = np.arange(0,10)*2
-intensity = monteCarlo(density,'test',400e-5,Aobs,kobs,M,1e-2)
+intensity = monteCarlo(density,'test',400e-5,Aobs,Kobs,M,1e-2)
 print('intensitiy' , intensity)
 plt.figure()
 plt.scatter(toh,intensity)
