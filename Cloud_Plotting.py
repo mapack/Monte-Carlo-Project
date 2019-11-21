@@ -55,11 +55,10 @@ def main():
 #    plt.show()
 
     theta, phi = np.mgrid[0:np.pi:90j, 0:2*np.pi:90j]
-    Kobs = np.zeros([8100,2])
-    for i in range(theta.size):
-        for j in range(phi.size):
-            Kobs[90*i+j,0] = theta[i] 
-            Kobs[90*i+j,1] = phi[90*i+j]
+    Kobs = np.zeros([8100,2]) 
+    for i in range(90):
+        Kobs[90*i:90*i+90,0] = theta[0][i] 
+        Kobs[90*i:90*i+90,1] = phi[0][:]
     
     R = L/2
     if mat == 'test':
