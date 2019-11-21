@@ -1,17 +1,18 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import interpolate
+import time
 
 def sky(pos,L,tol):
     #Equation for the sky  
     R = float(L)/2
     r = np.sqrt((pos[0]-R)**2+(pos[1]-R)**2+(pos[2]-R)**2)
     if np.abs(R-r) < tol:
-        return 1
+        return 0
     elif r > R:
         return (r-R)
     else: 
-        return 0
+        return 1
 
 def matSci(lmbda,mat):
     #Returns the sigma, albedeo, and cos(theta) grain values based on the wavelength and materials (*no material dependence yet*)
@@ -83,24 +84,20 @@ def interpolateDen(pos,density,axmin,axmax,C,khat):
     jprime = int((yprime-axmin)/(axmax-axmin)*(C-1.0))
     kprime = int((zprime-axmin)/(axmax-axmin)*(C-1.0))
     
-    if (iprime == i):
-        Wx = 0.25
-    else:
-        Wx = np.abs((x-i)/(iprime-i))
-    if (jprime == j):
-        Wy = 0.25
-    else:
-        Wy = np.abs((y-j)/(jprime-j))
-    if (kprime == k):
-        Wz = 0.25
-    else:
-        Wz = np.abs((z-k)/(kprime-k))
+    if iprime >= 64:
+        iprime = i 
+    if jprime >= 64:
+        jprime = j 
+    if kprime >= 64:
+        kprime = k
     
-    avgDen = density[i,j,k]*(1-Wx)*(1-Wy)*(1-Wz) + density[iprime,j,k]*(Wx)*(1-Wy)*(1-Wz) 
-    + density[i,jprime,k]*(1-Wx)*(Wy)*(1-Wz) + density[i,j,kprime]*(1-Wx)*(1-Wy)*(Wz) 
-    + density[iprime,jprime,k]*(Wx)*(Wy)*(1-Wz) + density[iprime,j,kprime]*(Wx)*(1-Wy)*(Wz)
-    + density[i,jprime,kprime]*(1-Wx)*(Wy)*(Wz) + density[iprime,jprime,kprime]*(Wx)*(Wy)*(Wz)
-    
+#    avgDen = density[i,j,k]*(1-Wx)*(1-Wy)*(1-Wz) + density[iprime,j,k]*(Wx)*(1-Wy)*(1-Wz) 
+#    + density[i,jprime,k]*(1-Wx)*(Wy)*(1-Wz) + density[i,j,kprime]*(1-Wx)*(1-Wy)*(Wz) 
+#    + density[iprime,jprime,k]*(Wx)*(Wy)*(1-Wz) + density[iprime,j,kprime]*(Wx)*(1-Wy)*(Wz)
+#    + density[i,jprime,kprime]*(1-Wx)*(Wy)*(Wz) + density[iprime,jprime,kprime]*(Wx)*(Wy)*(Wz)
+        
+    avgDen = density[i,j,k]*0.79 + density[iprime,j,k]*0.03 + density[i,jprime,k]*0.03 + density[i,j,kprime]*0.03 + density[iprime,jprime,k]*0.03 + density[iprime,j,kprime]*0.03 + density[i,jprime,kprime]*0.03 + density[iprime,jprime,kprime]*0.03
+    #print(avgDen)
     return np.abs(avgDen)
 
 def odsSample(pos,sigma,omega,g,density,tol,khat):
@@ -108,47 +105,51 @@ def odsSample(pos,sigma,omega,g,density,tol,khat):
     
     C = 64.0
     L = 64.0
+    it = 0 
     
-    while not(sky(pos,L,tol)):
+    while sky(pos,L,tol):
         p = np.random.rand(1)    
         ods = -np.log(p)
         odsp = 0.0
         
-        den = interpolateDen(pos,density,0.0,L,C,khat)
-        if den == 0:
-            step = np.sqrt(3)
-        else:
-            step = ods / (sigma*den) 
-        print(step)
-        
         while np.abs(ods-odsp) > tol:
+            den = interpolateDen(pos,density,0.0,L,C,khat)
+            if den == 0:
+                step = np.sqrt(3)
+            else:
+                step = ods / (sigma*den) 
+#            print(den)
+#            print(step)
+            
             poscheck = posUpdate(pos,khat,step)
             if sky(poscheck,L,tol) != 0 and sky(poscheck,L,tol) !=1:
                 step -= sky(poscheck,L,tol)
                 odsp += sigma * den * step
                 pos = posUpdate(pos,khat,step)
-                print(pos)
+#                print(pos)
                 break
-                
-            elif step > np.sqrt(3):    
-                odsp += sigma * den * np.sqrt(3)
-                pos = posUpdate(pos,khat,np.sqrt(3))
-                print(pos)
                 
             elif step < np.sqrt(3):
                 odsp += sigma * den * step
                 pos = posUpdate(pos,khat,step)
-                print(pos)
-             
-            den = interpolateDen(pos,density,0.0,L,C,khat)
-            step = ods / (sigma*den)
+#                print(pos)
+                break
+            
+            else:    
+                odsp += sigma * den * np.sqrt(3)
+                pos = posUpdate(pos,khat,np.sqrt(3))
+                ods -= sigma * den * np.sqrt(3)
+#                print(pos)
             
         oda += (1/omega - 1)*odsp
         khat = genDirection(khat,g)
+        it+=1
+        #print(it)
         
     return oda
 
 def monteCarlo(density,mat,lmbda,Aobs,Kobs,M,tol):
+    t0 = time.time()
     sigma,omega,g = matSci(lmbda,mat)
     K = Kobs.shape[0]
     intensities = np.zeros(Aobs.shape[0])        
@@ -162,7 +163,7 @@ def monteCarlo(density,mat,lmbda,Aobs,Kobs,M,tol):
                 W[k,m] = oda    
                     
         intensities[a] = 1/(K*M)*np.sum(W)           
-    
+    print('time',(time.time()-t0))
     return intensities
 
 density = np.zeros([64,64,64]) + 0.15
