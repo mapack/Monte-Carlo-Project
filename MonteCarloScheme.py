@@ -48,6 +48,35 @@ def matSci(lmbda,mat):
         
     return sigma,albedo,g
 
+def genKobs(Aobs,L):
+    R = L/2
+    theta, phi = np.mgrid[0:np.pi:90j, 0:2*np.pi:90j]
+    
+    kobs = np.zeros([8100,2])
+    for i in range(theta.shape[0]):
+        for j in range(phi.shape[0]):
+            kobs[90*i+j,0] = theta[i,0]
+            kobs[90*i+j,1] = phi[0,j]
+
+    psphere = np.zeros([kobs.shape[0],3]) + R
+    for n in range(kobs.shape[0]):
+        psphere[n,0] += R*np.sin(kobs[n,0])*np.cos(kobs[n,1]) 
+        psphere[n,1] += R*np.sin(kobs[n,0])*np.sin(kobs[n,1])
+        psphere[n,2] += R*np.cos(kobs[n,0])
+
+    Kobs = np.zeros(kobs.shape)
+    
+    r = np.sqrt((Aobs[0]-R)**2+(Aobs[1]-R)**2+(Aobs[2]-R)**2)
+    
+    for j in range(kobs.shape[0]):
+        Kobs[j,0] = np.arccos((psphere[j,2]-Aobs[2])/(R-r))
+        if Kobs[j,0] < 1e-2:
+            Kobs[j,1] = 0.0
+        else:
+            Kobs[j,1] = np.arcsin((psphere[j,1]-Aobs[1])/((R-r)*np.sin(Kobs[j,0])))
+
+    return Kobs
+
 def genDirection(khat,g):
     theta = 0.0
     phi = 0.0
@@ -65,7 +94,7 @@ def posUpdate(pos,khat,step):
     theta = khat[0]
     phi = khat[1]
     npos = np.zeros(pos.shape)
-    npos[0] = pos[0] + step*np.cos(theta)*np.sin(phi)
+    npos[0] = pos[0] + step*np.sin(theta)*np.cos(phi)
     npos[1] = pos[1] + step*np.sin(theta)*np.sin(phi)
     npos[2] = pos[2] + step*np.cos(theta)
     return npos
@@ -102,7 +131,6 @@ def odsSample(pos,sigma,omega,g,density,tol,khat):
     
     C = 64.0
     L = 64.0
-    it = 0 
     
     while sky(pos,L,tol):
         p = np.random.rand(1)    
@@ -141,43 +169,37 @@ def odsSample(pos,sigma,omega,g,density,tol,khat):
             
         oda += (1/omega - 1)*odsp
         khat = genDirection(khat,g)
-        it+=1
-        #print(it)
         
     return oda
 
-def monteCarlo(density,mat,lmbda,Aobs,Kobs,M,tol):
+def monteCarlo(density,mat,lmbda,Aobs,M,tol):
     t0 = time.time()
     sigma,omega,g = matSci(lmbda,mat)
-    K = Kobs.shape[0]
     intensities = np.zeros(Aobs.shape[0])        
     
     for a in range(Aobs.shape[0]):
+        Kobs = genKobs(Aobs[a],64)
+        K = Kobs.shape[0]
         W = np.zeros([K,M])
         for k in range(K): 
             for m in range(M):
                 pos = Aobs[a,:]
                 oda = odsSample(pos,sigma,omega,g,density,tol,Kobs[k])
-                W[k,m] = oda    
+                W[k,m] = np.exp(-oda)    
                     
         intensities[a] = 1/(K*M)*np.sum(W)           
     print('time',(time.time()-t0))
     return intensities
 
-density = np.zeros([64,64,64]) + 0.019
-Aobs = np.zeros([10,3]) + 32.0
-for i in range(10):
-    Aobs[i,2] += 2*i/(49.342*0.019)
+#density = np.zeros([64,64,64]) + 0.019
+#Aobs = np.zeros([1,3]) + 32.0
+#for i in range(10):
+#    Aobs[i,2] += 2*i/(49.342*0.019)
 #print(Aobs)
-M = 10
-theta, phi = np.mgrid[0:np.pi:90j, 0:2*np.pi:90j]
-Kobs = np.zeros([8100,2]) 
-for i in range(90):
-    Kobs[90*i:90*i+90,0] = theta[0][i] 
-    Kobs[90*i:90*i+90,1] = phi[0][:]
+#M = 10
 
-toh = np.arange(0,10)*2
-intensity = monteCarlo(density,'test',400e-5,Aobs,Kobs,M,1e-2)
-print('intensitiy' , intensity)
-plt.figure()
-plt.scatter(toh,intensity)
+#toh = np.arange(0,10)*2
+#intensity = monteCarlo(density,'test',400e-5,Aobs,M,1e-2)
+#print('intensitiy' , intensity)
+#plt.figure()
+#plt.scatter(toh,intensity)
