@@ -13,9 +13,9 @@ def main():
                         help="Fractal Dimention")
     parser.add_argument("L",type=float,
                         help="Size of cube axis")
-    parser.add_argument("C",type=float,
+    parser.add_argument("C",type=int,
                         help="Number of Cubes Axis")
-    parser.add_argument("N",type=float,
+    parser.add_argument("N",type=int,
                         help="Generation particle number")
     parser.add_argument("mat",type=str,
                         help="Material of Cloud")
