@@ -58,7 +58,7 @@ def main():
     if mat == 'test':
         Aobs = np.zeros([20,3]) + R
         for n in range(20):
-            Aobs[i,2] += i/(49.342*0.019)
+            Aobs[n,2] += n/(49.342*0.019)
     else:
         Aobs = np.zeros([10,000,3])
         
