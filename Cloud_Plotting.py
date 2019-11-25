@@ -21,6 +21,8 @@ def main():
                         help="Material of Cloud")
     parser.add_argument("lmbd",type=float,
                         help="Wavelength")
+    parser.add_argument("uniform",type=bool,
+                        help="Uses uniform density if True")
     
     args = parser.parse_args()
     D = args.D
@@ -29,11 +31,9 @@ def main():
     N = args.N
     mat = args.mat
     lmbd = args.lmbd 
+    uniform = args.uniform
 
-    cloudR = Cloud(D,N,L,C).point_array
-    cloud = cloudR[0]
-    density = cloudR[1][0]
-#    print('Density Array: ' + str(cloudR[1][0]))
+    cloud, density = Cloud(D,N,L,C,uniform = uniform).point_array
 
     #Plotting For the Particles in Space
      
@@ -54,12 +54,6 @@ def main():
 #
 #    plt.show()
 
-    theta, phi = np.mgrid[0:np.pi:90j, 0:2*np.pi:90j]
-    Kobs = np.zeros([8100,2]) 
-    for i in range(90):
-        Kobs[90*i:90*i+90,0] = theta[0][i] 
-        Kobs[90*i:90*i+90,1] = phi[0][:]
-    
     R = L/2
     if mat == 'test':
         Aobs = np.zeros([20,3]) + R
@@ -69,4 +63,4 @@ def main():
         Aobs = np.zeros([10,000,3])
         
     
-    intensity = monteCarlo(density,mat,lmbd,Aobs,Kobs,10,1e-2)
+    intensity = monteCarlo(density,mat,lmbd,Aobs,10,1e-2)
