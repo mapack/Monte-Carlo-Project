@@ -87,6 +87,6 @@ def generateCloud(D,N,L,C):
     cloudbn = hardWallBound(cloud,L)
     
     density = np.histogramdd(cloudbn,bins = (C,C,C),range=[(0,L),(0,L),(0,L)])
-    print("The cluster lentgh: " + str(L/(2*delta)))
+#    print("The cluster lentgh: " + str(L/(2*delta)))
     
     return cloudbn , density
