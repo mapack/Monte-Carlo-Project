@@ -64,3 +64,5 @@ def main():
         
     
     intensity = monteCarlo(density,mat,lmbd,Aobs,10,1e-2)
+    
+main()
