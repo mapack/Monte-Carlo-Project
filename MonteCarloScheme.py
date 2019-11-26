@@ -50,27 +50,14 @@ def matSci(lmbda,mat):
 
 def genKobs(Aobs,L):
     R = L/2
-    theta, phi = np.mgrid[0:np.pi:90j, 0:2*np.pi:90j]
+    psphere = np.loadtxt('pointsonsphere.txt')
     
-    kobs = np.zeros([8100,2])
-    for i in range(theta.shape[0]):
-        for j in range(phi.shape[0]):
-            kobs[90*i+j,0] = theta[i,0]
-            kobs[90*i+j,1] = phi[0,j]
-
-    psphere = np.zeros([kobs.shape[0],3]) + R
-    for n in range(kobs.shape[0]):
-        psphere[n,0] += R*np.sin(kobs[n,0])*np.cos(kobs[n,1]) 
-        psphere[n,1] += R*np.sin(kobs[n,0])*np.sin(kobs[n,1])
-        psphere[n,2] += R*np.cos(kobs[n,0])
-
-    Kobs = np.zeros(kobs.shape)
-    
+    Kobs = np.zeros(psphere.shape)
     r = np.sqrt((Aobs[0]-R)**2+(Aobs[1]-R)**2+(Aobs[2]-R)**2)
     
-    for j in range(kobs.shape[0]):
+    for j in range(psphere.shape[0]):
         Kobs[j,0] = np.arccos((psphere[j,2]-Aobs[2])/(R-r))
-        if Kobs[j,0] < 1e-2:
+        if Kobs[j,0] == 0 or Kobs[j,0] == np.pi:
             Kobs[j,1] = 0.0
         else:
             Kobs[j,1] = np.arcsin((psphere[j,1]-Aobs[1])/((R-r)*np.sin(Kobs[j,0])))
