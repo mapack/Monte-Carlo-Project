@@ -55,19 +55,11 @@ def genKobs(Aobs):
     
     for j in range(psphere.shape[0]):
         r = np.sqrt((Aobs[0]-psphere[j,0])**2+(Aobs[1]-psphere[j,1])**2+(Aobs[2]-psphere[j,2])**2)
-
-        if np.abs((psphere[j,2]-Aobs[2])/(r) - 1) < 1e-6:
-            Kobs[j,0] = 0.0
-        elif np.abs((psphere[j,2]-Aobs[2])/(r) + 1) < 1e-6:
-            Kobs[j,0] = np.pi
-        else:
-            Kobs[j,0] = np.arccos((psphere[j,2]-Aobs[2])/(r))
+        Kobs[j,0] = np.arccos((psphere[j,2]-Aobs[2])/(r))
             
         if np.abs(Kobs[j,0]) < 1e-6 or np.abs(Kobs[j,0] - np.pi) < 1e-6:
             Kobs[j,1] = 0.0
 #            print(Kobs[j,:])
-        elif np.abs((psphere[j,1]-Aobs[1])/((r)*np.sin(Kobs[j,0])) + 1) < 1e-6 or np.abs((psphere[j,1]-Aobs[1])/((r)*np.sin(Kobs[j,0])) - 1) < 1e-6:
-            Kobs[j,1] = np.pi / 2
         else:
             Kobs[j,1] = np.arcsin((psphere[j,1]-Aobs[1])/((r)*np.sin(Kobs[j,0])))
 #            print(Kobs[j,:])
