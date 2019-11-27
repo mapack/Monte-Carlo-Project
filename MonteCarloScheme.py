@@ -48,19 +48,29 @@ def matSci(lmbda,mat):
         
     return sigma,albedo,g
 
-def genKobs(Aobs,L):
-    R = L/2
+def genKobs(Aobs):
     psphere = np.loadtxt('pointsonsphere.txt')
     
-    Kobs = np.zeros(psphere.shape)
-    r = np.sqrt((Aobs[0]-R)**2+(Aobs[1]-R)**2+(Aobs[2]-R)**2)
+    Kobs = np.zeros([psphere.shape[0],2])
     
     for j in range(psphere.shape[0]):
-        Kobs[j,0] = np.arccos((psphere[j,2]-Aobs[2])/(R-r))
-        if Kobs[j,0] == 0 or Kobs[j,0] == np.pi:
-            Kobs[j,1] = 0.0
+        r = np.sqrt((Aobs[0]-psphere[j,0])**2+(Aobs[1]-psphere[j,1])**2+(Aobs[2]-psphere[j,2])**2)
+
+        if np.abs((psphere[j,2]-Aobs[2])/(r) - 1) < 1e-6:
+            Kobs[j,0] = 0.0
+        elif np.abs((psphere[j,2]-Aobs[2])/(r) + 1) < 1e-6:
+            Kobs[j,0] = np.pi
         else:
-            Kobs[j,1] = np.arcsin((psphere[j,1]-Aobs[1])/((R-r)*np.sin(Kobs[j,0])))
+            Kobs[j,0] = np.arccos((psphere[j,2]-Aobs[2])/(r))
+            
+        if np.abs(Kobs[j,0]) < 1e-6 or np.abs(Kobs[j,0] - np.pi) < 1e-6:
+            Kobs[j,1] = 0.0
+#            print(Kobs[j,:])
+        elif np.abs((psphere[j,1]-Aobs[1])/((r)*np.sin(Kobs[j,0])) + 1) < 1e-6 or np.abs((psphere[j,1]-Aobs[1])/((r)*np.sin(Kobs[j,0])) - 1) < 1e-6:
+            Kobs[j,1] = np.pi / 2
+        else:
+            Kobs[j,1] = np.arcsin((psphere[j,1]-Aobs[1])/((r)*np.sin(Kobs[j,0])))
+#            print(Kobs[j,:])
 
     return Kobs
 
@@ -101,7 +111,7 @@ def interpolateDen(pos,density,axmin,axmax,C,khat):
         
     posPrime = posUpdate(pos,khat,np.sqrt(3))
     xprime,yprime,zprime = posPrime[0],posPrime[1],posPrime[2]
-    
+
     iprime = int((xprime-axmin)/(axmax-axmin)*(C-1.0))
     jprime = int((yprime-axmin)/(axmax-axmin)*(C-1.0))
     kprime = int((zprime-axmin)/(axmax-axmin)*(C-1.0))
@@ -165,7 +175,7 @@ def monteCarlo(density,mat,lmbda,Aobs,M,tol):
     intensities = np.zeros(Aobs.shape[0])        
     
     for a in range(Aobs.shape[0]):
-        Kobs = genKobs(Aobs[a],64)
+        Kobs = genKobs(Aobs[a,:],64)
         K = Kobs.shape[0]
         W = np.zeros([K,M])
         for k in range(K): 
@@ -177,16 +187,3 @@ def monteCarlo(density,mat,lmbda,Aobs,M,tol):
         intensities[a] = 1/(K*M)*np.sum(W)           
     print('time',(time.time()-t0))
     return intensities
-
-#density = np.zeros([64,64,64]) + 0.019
-#Aobs = np.zeros([1,3]) + 32.0
-#for i in range(10):
-#    Aobs[i,2] += 2*i/(49.342*0.019)
-#print(Aobs)
-#M = 10
-
-#toh = np.arange(0,10)*2
-#intensity = monteCarlo(density,'test',400e-5,Aobs,M,1e-2)
-#print('intensitiy' , intensity)
-#plt.figure()
-#plt.scatter(toh,intensity)
