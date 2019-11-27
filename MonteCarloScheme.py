@@ -167,7 +167,7 @@ def monteCarlo(density,mat,lmbda,Aobs,M,tol):
     intensities = np.zeros(Aobs.shape[0])        
     
     for a in range(Aobs.shape[0]):
-        Kobs = genKobs(Aobs[a,:],64)
+        Kobs = genKobs(Aobs[a,:])
         K = Kobs.shape[0]
         W = np.zeros([K,M])
         for k in range(K): 
