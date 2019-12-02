@@ -1,18 +1,19 @@
 import numpy as np
 
 class Cloud:
-    def __init__(self, D, N, L, C, uniform=False, full_cloud=False):
+    def __init__(self, D, N, L, C, uniform=False, sample=False):
         self.D = D
         self.N = N
         self.L = L
         self.C = C
-        
+
         if uniform:
             self.point_array = generateUniformCloud(D,N,L,C)
-        if not uniform:
+        elif sample:
+            self.point_array = generateSampCloud(D,N,L,C)
+        else:
             self.point_array = generateCloud(D,N,L,C)
-        if full_cloud:
-            self.point_array = generateFullCloud(D,N,L,C)
+        
 
 def hardWallBound(arr,L):
     x = arr[:,0]
@@ -49,8 +50,10 @@ def generateUniformCloud(D,N,L,C):
     density = np.zeros([C,C,C]) + 0.019
     return dummy , density
 
-def generateFullCloud(D,N,L,C):
-    return np.zeros(0)
+def generateSampCloud(D,N,L,C):
+    dummy = np.zeros([1,3])
+    density = np.load('sampledensity.npy')
+    return dummy , density
 
 def generateCloud(D,N,L,C):
     __p1__ = np.zeros([N,3])
