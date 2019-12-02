@@ -5,9 +5,35 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from itertools import product, combinations
-from MonteCarloScheme import monteCarlo
+from MonteCarloScheme1D import monteCarlo
+import multiprocessing
+import pandas as pd
 
-def main():
+def parallelMonteCarlo(Aobs):
+    print('started point')
+    D = 2.6
+    L = 64
+    C = 64
+    N = 32
+    uniform = 1
+    sample = 0
+    mat = 'test'
+    lmbd = 450e-6
+    
+    Aobs = Aobs.as_matrix(columns=None)
+    print(Aobs)
+    Aobs.reshape([1,3])
+    
+    cloud, density = Cloud(D,N,L,C,uniform = uniform, sample = sample).point_array
+    intensity = monteCarlo(density,mat,lmbd,Aobs,10,1e-2)
+    intensities = open("intensities.txt", "a")
+    intensities.write(intensity + "\n")
+    intensities.close()
+    print('point done. intensity: ' + str(intensity))
+    
+    
+    
+if __name__ == '__main__':
     parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter)
     parser.add_argument("D",type=float,
                         help="Fractal Dimention")
@@ -56,7 +82,7 @@ def main():
 #    ax.plot_wireframe(x, y, z, color="gray",alpha = 0.5)
 #
 #    plt.show()
-
+    print('here')
     R = L/2
     if mat == 'test':
         Aobs = np.zeros([20,3]) + R
@@ -64,8 +90,10 @@ def main():
             Aobs[n,2] += n/((1/0.6 - 1)*19.7368421*0.019 + 19.7368421*0.019)
     else:
         Aobs = np.zeros([1,3]) + 32.0
-
-    intensity = monteCarlo(density,mat,lmbd,Aobs,10,1e-2)
+        
+    data = pd.DataFrame({'x': Aobs[:,0], 'y': Aobs[:,1], 'z': Aobs[:,2]})
+    pool = multiprocessing.Pool(multiprocessing.cpu_count())
+    
+    pool.map(parallelMonteCarlo, [row for i, row in data.iterrows()])
+    #intensity = monteCarlo(density,mat,lmbd,Aobs,10,1e-2)
 #    np.savetxt('testintensity.txt',intensity)
-
-main()
