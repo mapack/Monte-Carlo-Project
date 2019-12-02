@@ -20,7 +20,7 @@ def matSci(lmbda,mat):
     if mat == 'test':
         albedo = 0.6
         g = 0.6
-        sigma = 49.342
+        sigma = 0.0000234375
         
     else:
         #Loading model data
@@ -62,6 +62,8 @@ def genKobs(Aobs):
 #            print(Kobs[j,:])
         else:
             Kobs[j,1] = np.arcsin((psphere[j,1]-Aobs[1])/((r)*np.sin(Kobs[j,0])))
+            if psphere[j,0] < 32.0:
+                Kobs[j,1] = np.pi - Kobs[j,1]
 #            print(Kobs[j,:])
 
     return Kobs
