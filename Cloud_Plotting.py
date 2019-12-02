@@ -21,8 +21,10 @@ def main():
                         help="Material of Cloud")
     parser.add_argument("lmbd",type=float,
                         help="Wavelength")
-    parser.add_argument("uniform",type=bool,
+    parser.add_argument("uniform",type=int,
                         help="Uses uniform density if True")
+    parser.add_argument("sample",type=int,
+                        help="Uses sample density if True")
     
     args = parser.parse_args()
     D = args.D
@@ -32,8 +34,9 @@ def main():
     mat = args.mat
     lmbd = args.lmbd 
     uniform = args.uniform
+    sample = args.sample
 
-    cloud, density = Cloud(D,N,L,C,uniform = uniform).point_array
+    cloud, density = Cloud(D,N,L,C,uniform = uniform, sample = sample).point_array
 
     #Plotting For the Particles in Space
      
@@ -60,9 +63,9 @@ def main():
         for n in range(20):
             Aobs[n,2] += n/(49.342*0.019)
     else:
-        Aobs = np.zeros([10,000,3])
-        
-    
+        Aobs = np.zeros([1,3]) + 32.0
+
     intensity = monteCarlo(density,mat,lmbd,Aobs,10,1e-2)
-    
+#    np.savetxt('testintensity.txt',intensity)
+
 main()
