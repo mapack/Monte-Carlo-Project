@@ -6,8 +6,10 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from itertools import product, combinations
 from MonteCarloScheme import monteCarlo
+import multiprocessing as mp
+import time
 
-def main():
+if __name__ == '__main__':
     parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter)
     parser.add_argument("D",type=float,
                         help="Fractal Dimention")
@@ -22,9 +24,9 @@ def main():
     parser.add_argument("lmbd",type=float,
                         help="Wavelength")
     parser.add_argument("uniform",type=int,
-                        help="Uses uniform density if True")
+                        help="Uses uniform density if True (1)")
     parser.add_argument("sample",type=int,
-                        help="Uses sample density if True")
+                        help="Uses sample density if True (1)")
     
     args = parser.parse_args()
     D = args.D
@@ -64,23 +66,32 @@ def main():
         for n in range(20):
             Aobs[n,2] += 0.6*0.5*n / ((10*0.6 / (1000 * 0.5 * 3.086e18))*1000)
     else:
-        Aobs = np.zeros([1,3]) + R
+        Aobs = np.zeros([4,3])
+        for i in range(4):
+            Aobs[i,:] = L*np.random.uniform(0,1,3)
         
-#    Aobs_size = Aobs.shape[0]
-#    
-#    Obs_list = np.zeros([Aobs_size/4,3,4])
-#    Obs_list[:,:,0] = Aobs[0:Aobs_size/4]
-#    Obs_list[:,:,1] = Aobs[Aobs_size/4:Aobs_size/2]
-#    Obs_list[:,:,2] = Aobs[Aobs_size/2:3*Aobs_size/4]
-#    Obs_list[:,:,3] = Aobs[3*Aobs_size/4:Aobs_size]
-#    
-#    for i in range(Obs_list.shape[2]):
-#        p = Process(target=monteCarlo, args=(density, mat, lmbd, Obs_list[:,:,i],10,1e-2,L))
-#        p.start()
-#        p.join()
-
-    intensity = monteCarlo(density,mat,lmbd,Aobs,10,1e-2,L)
-
-    np.savetxt('testintensity.txt',intensity)
+    Aobs_size = Aobs.shape[0]
     
-main()
+#    print(Aobs)
+    Obs_list = []
+    pross = mp.cpu_count()    
+    Obs_list = np.split(Aobs,pross)
+
+#    print(Obs_list)
+    
+    tasks = []
+    for i in range(pross):
+        tuple = (density,mat,lmbd,Obs_list[i],10,1e-2,L)
+        tasks.append(tuple)
+    
+#    print(tasks)
+    
+    myPool = mp.Pool(pross)
+    intensities = myPool.starmap(monteCarlo, tasks)
+    
+    intensityArr = np.concatenate(intensities).ravel()
+    np.savetxt('testintensity.txt',intensityArr)
+    
+#    intensity = monteCarlo(density,mat,lmbd,Aobs,10,1e-2,L)
+
+#    np.savetxt('testintensity.txt',intensity)
