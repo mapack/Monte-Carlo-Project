@@ -5,35 +5,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from itertools import product, combinations
-from MonteCarloScheme1D import monteCarlo
-import multiprocessing
-import pandas as pd
+from MonteCarloScheme import monteCarlo
 
-def parallelMonteCarlo(Aobs):
-    print('started point')
-    D = 2.6
-    L = 64
-    C = 64
-    N = 32
-    uniform = 1
-    sample = 0
-    mat = 'test'
-    lmbd = 450e-6
-    
-    Aobs = Aobs.as_matrix(columns=None)
-    print(Aobs)
-    Aobs.reshape([1,3])
-    
-    cloud, density = Cloud(D,N,L,C,uniform = uniform, sample = sample).point_array
-    intensity = monteCarlo(density,mat,lmbd,Aobs,10,1e-2)
-    intensities = open("intensities.txt", "a")
-    intensities.write(intensity + "\n")
-    intensities.close()
-    print('point done. intensity: ' + str(intensity))
-    
-    
-    
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter)
     parser.add_argument("D",type=float,
                         help="Fractal Dimention")
@@ -63,7 +37,8 @@ if __name__ == '__main__':
     sample = args.sample
 
     cloud, density = Cloud(D,N,L,C,uniform = uniform, sample = sample).point_array
-
+    
+#    print(density)
     #Plotting For the Particles in Space
      
 #    fig = plt.figure()
@@ -82,18 +57,17 @@ if __name__ == '__main__':
 #    ax.plot_wireframe(x, y, z, color="gray",alpha = 0.5)
 #
 #    plt.show()
-    print('here')
+    
     R = L/2
     if mat == 'test':
         Aobs = np.zeros([20,3]) + R
         for n in range(20):
-            Aobs[n,2] += n/((1/0.6 - 1)*19.7368421*0.019 + 19.7368421*0.019)
+            Aobs[n,2] += 0.6*0.5*n / ((10*0.6 / (1000 * 0.5 * 3.086e18))*1000)
     else:
-        Aobs = np.zeros([1,3]) + 32.0
-        
-    data = pd.DataFrame({'x': Aobs[:,0], 'y': Aobs[:,1], 'z': Aobs[:,2]})
-    pool = multiprocessing.Pool(multiprocessing.cpu_count())
+        Aobs = np.zeros([1,3]) + R
+
+    intensity = monteCarlo(density,mat,lmbd,Aobs[0:1,:],10,1e-2,L)
+
+    np.savetxt('testintensity.txt',intensity)
     
-    pool.map(parallelMonteCarlo, [row for i, row in data.iterrows()])
-    #intensity = monteCarlo(density,mat,lmbd,Aobs,10,1e-2)
-#    np.savetxt('testintensity.txt',intensity)
+main()
