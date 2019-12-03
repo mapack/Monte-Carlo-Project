@@ -65,6 +65,19 @@ def main():
             Aobs[n,2] += 0.6*0.5*n / ((10*0.6 / (1000 * 0.5 * 3.086e18))*1000)
     else:
         Aobs = np.zeros([1,3]) + R
+        
+#    Aobs_size = Aobs.shape[0]
+#    
+#    Obs_list = np.zeros([Aobs_size/4,3,4])
+#    Obs_list[:,:,0] = Aobs[0:Aobs_size/4]
+#    Obs_list[:,:,1] = Aobs[Aobs_size/4:Aobs_size/2]
+#    Obs_list[:,:,2] = Aobs[Aobs_size/2:3*Aobs_size/4]
+#    Obs_list[:,:,3] = Aobs[3*Aobs_size/4:Aobs_size]
+#    
+#    for i in range(Obs_list.shape[2]):
+#        p = Process(target=monteCarlo, args=(density, mat, lmbd, Obs_list[:,:,i],10,1e-2,L))
+#        p.start()
+#        p.join()
 
     intensity = monteCarlo(density,mat,lmbd,Aobs[0:1,:],10,1e-2,L)
 
