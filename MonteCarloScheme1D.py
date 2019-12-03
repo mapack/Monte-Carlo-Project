@@ -20,7 +20,7 @@ def matSci(lmbda,mat):
     if mat == 'test':
         albedo = 0.6
         g = 0.6
-        sigma = 0.0000234375
+        sigma = 19.7368421
         
     else:
         #Loading model data
@@ -169,12 +169,12 @@ def monteCarlo(density,mat,lmbda,Aobs,M,tol):
     intensities = np.zeros(Aobs.shape[0])        
     
     for a in range(Aobs.shape[0]):
-        Kobs = genKobs(Aobs[a,:])
+        Kobs = genKobs(Aobs)
         K = Kobs.shape[0]
         W = np.zeros([K,M])
         for k in range(K): 
             for m in range(M):
-                pos = Aobs[a,:]
+                pos = Aobs
                 oda = odsSample(pos,sigma,omega,g,density,tol,Kobs[k])
                 W[k,m] = np.exp(-oda)    
                     
