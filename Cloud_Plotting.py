@@ -79,7 +79,7 @@ def main():
 #        p.start()
 #        p.join()
 
-    intensity = monteCarlo(density,mat,lmbd,Aobs[0:1,:],10,1e-2,L)
+    intensity = monteCarlo(density,mat,lmbd,Aobs,10,1e-2,L)
 
     np.savetxt('testintensity.txt',intensity)
     
