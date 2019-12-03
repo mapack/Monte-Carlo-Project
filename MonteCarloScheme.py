@@ -20,7 +20,7 @@ def matSci(lmbda,mat):
     if mat == 'test':
         albedo = 0.6
         g = 0.6
-        sigma = 0.0000234375
+        sigma = 10*0.6 / (1000 * 0.5 * 3.086e18)
         
     else:
         #Loading model data
@@ -33,7 +33,7 @@ def matSci(lmbda,mat):
        
         #Converts absorption coeffiecients to cm^2 per H nucleon
         absorp *= 1.87e-26
-        #Calculates scattering coeeffiecients
+        #Calculates scattering coeffiecients
         sigmagrid = ext - absorp
        
         #Interpolation of sigma, albedo, g using model grids
@@ -48,7 +48,7 @@ def matSci(lmbda,mat):
         
     return sigma,albedo,g
 
-def genKobs(Aobs):
+def genKobs(Aobs,L):
     psphere = np.loadtxt('pointsonsphere.txt')
     
     Kobs = np.zeros([psphere.shape[0],2])
@@ -62,7 +62,7 @@ def genKobs(Aobs):
 #            print(Kobs[j,:])
         else:
             Kobs[j,1] = np.arcsin((psphere[j,1]-Aobs[1])/((r)*np.sin(Kobs[j,0])))
-            if psphere[j,0] < 32.0:
+            if psphere[j,0] < L/2:
                 Kobs[j,1] = np.pi - Kobs[j,1]
 #            print(Kobs[j,:])
 
@@ -93,7 +93,7 @@ def posUpdate(pos,khat,step):
 def interpolateDen(pos,density,axmin,axmax,C,khat):
     if sky(pos,axmax,1e-2) != 0 and sky(pos,axmax,1e-2) !=1:
         return 0
-       
+
     x,y,z = pos[0],pos[1],pos[2]
     
     i = int((x-axmin)/(axmax-axmin)*(C-1.0))
@@ -103,7 +103,7 @@ def interpolateDen(pos,density,axmin,axmax,C,khat):
     if sky(pos,axmax,1e-2) == 0:
         return density[i,j,k]
         
-    posPrime = posUpdate(pos,khat,np.sqrt(3))
+    posPrime = posUpdate(pos,khat,axmax/C * np.sqrt(3))
     xprime,yprime,zprime = posPrime[0],posPrime[1],posPrime[2]
 
     iprime = int((xprime-axmin)/(axmax-axmin)*(C-1.0))
@@ -121,7 +121,7 @@ def odsSample(pos,sigma,omega,g,density,tol,khat):
     oda = 0.0 
     
     C = 64.0
-    L = 64.0
+    L = 3.086e18
     
     while sky(pos,L,tol):
         p = np.random.rand(1)    
@@ -131,7 +131,7 @@ def odsSample(pos,sigma,omega,g,density,tol,khat):
         while np.abs(ods-odsp) > tol:
             den = interpolateDen(pos,density,0.0,L,C,khat)
             if den == 0:
-                step = np.sqrt(3)
+                step = L/C * np.sqrt(3)
             else:
                 step = ods / (sigma*den) 
 #            print(den)
@@ -146,16 +146,16 @@ def odsSample(pos,sigma,omega,g,density,tol,khat):
 #                print('sky',pos)
                 return oda
                 
-            elif step < np.sqrt(3):
+            elif step < L/C * np.sqrt(3):
                 odsp += sigma * den * step
                 pos = posUpdate(pos,khat,step)
 #                print('<',pos)
                 break
             
             else:    
-                odsp += sigma * den * np.sqrt(3)
-                pos = posUpdate(pos,khat,np.sqrt(3))
-                ods -= sigma * den * np.sqrt(3)
+                odsp += sigma * den * L/C * np.sqrt(3)
+                pos = posUpdate(pos,khat,L/C * np.sqrt(3))
+                ods -= sigma * den * L/C * np.sqrt(3)
 #                print('>',pos)
             
         oda += (1/omega - 1)*odsp
@@ -163,13 +163,13 @@ def odsSample(pos,sigma,omega,g,density,tol,khat):
         
     return oda
 
-def monteCarlo(density,mat,lmbda,Aobs,M,tol):
+def monteCarlo(density,mat,lmbda,Aobs,M,tol,L):
     t0 = time.time()
     sigma,omega,g = matSci(lmbda,mat)
     intensities = np.zeros(Aobs.shape[0])        
     
     for a in range(Aobs.shape[0]):
-        Kobs = genKobs(Aobs[a,:])
+        Kobs = genKobs(Aobs[a,:],L)
         K = Kobs.shape[0]
         W = np.zeros([K,M])
         for k in range(K): 
