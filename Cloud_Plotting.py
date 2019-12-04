@@ -66,16 +66,15 @@ if __name__ == '__main__':
         for n in range(20):
             Aobs[n,2] += 0.6*0.5*n / ((10*0.6 / (1000 * 0.5 * 3.086e18))*1000)
     else:
-        Aobs = np.zeros([4,3])
-        for i in range(4):
-            Aobs[i,:] = L*np.random.uniform(0,1,3)
+        Aobs = np.loadtxt('Aobs.txt')
+        Aobs *= (L/C)
         
     Aobs_size = Aobs.shape[0]
     
 #    print(Aobs)
     Obs_list = []
     pross = mp.cpu_count()    
-    Obs_list = np.split(Aobs,pross)
+    Obs_list = np.array_split(Aobs,pross)
 
 #    print(Obs_list)
     
