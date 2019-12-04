@@ -25,6 +25,11 @@ for i in range(64):
         ysum[i,j] = np.sum(cloud[j,:,i])
         zsum[i,j] = np.sum(cloud[i,j,:])
 
+xsum = np.log10(xsum)
+ysum = np.log10(ysum)
+zsum = np.log10(zsum)
+
+
 #Circular cloud boundary for plotting
 theta = np.linspace(0,2*np.pi,1000)
 xcirc = 31*np.cos(theta) + 31.5
@@ -36,7 +41,8 @@ fig = plt.figure(figsize = (15,4))
 #XY plane
 plt.subplot(1,3,1)
 plt.contourf(X,Y,zsum,resolution,cmap=color)
-plt.colorbar()
+cb = plt.colorbar()
+cb.set_label('log(n/cm^2)')
 plt.xlabel('x')
 plt.ylabel('y')
 plt.plot(xcirc,ycirc,'r')
@@ -44,7 +50,8 @@ plt.plot(xcirc,ycirc,'r')
 #XZ plane
 plt.subplot(1,3,2)
 plt.contourf(X,Y,ysum,resolution,cmap=color)
-plt.colorbar()
+cb = plt.colorbar()
+cb.set_label('log(n/cm^2)')
 plt.xlabel('z')
 plt.ylabel('x')
 plt.plot(xcirc,ycirc,'r')
@@ -52,7 +59,8 @@ plt.plot(xcirc,ycirc,'r')
 #YZ plane
 plt.subplot(1,3,3)
 plt.contourf(X,Y,xsum,resolution,cmap=color)
-plt.colorbar()
+cb = plt.colorbar()
+cb.set_label('log(n/cm^2)')
 plt.xlabel('y')
 plt.ylabel('z')
 plt.plot(xcirc,ycirc,'r')
