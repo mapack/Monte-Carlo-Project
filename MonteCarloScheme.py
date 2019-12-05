@@ -103,7 +103,7 @@ def interpolateDen(pos,density,axmin,axmax,C,khat):
     if sky(pos,axmax,1e-2) == 0:
         return density[i,j,k]
         
-    posPrime = posUpdate(pos,khat,axmax/C * np.sqrt(3))
+    posPrime = posUpdate(pos,khat,axmax/C)
     xprime,yprime,zprime = posPrime[0],posPrime[1],posPrime[2]
 
     iprime = int((xprime-axmin)/(axmax-axmin)*(C-1.0))
@@ -117,11 +117,8 @@ def interpolateDen(pos,density,axmin,axmax,C,khat):
     #print(avgDen)
     return np.abs(avgDen)
 
-def odsSample(pos,sigma,omega,g,density,tol,khat):
+def odsSample(pos,sigma,omega,g,density,tol,khat,C,L):
     oda = 0.0 
-    
-    C = 64.0
-    L = 3.086e18
     
     while sky(pos,L,tol):
         p = np.random.rand(1)    
@@ -131,7 +128,7 @@ def odsSample(pos,sigma,omega,g,density,tol,khat):
         while np.abs(ods-odsp) > tol:
             den = interpolateDen(pos,density,0.0,L,C,khat)
             if den == 0:
-                step = L/C * np.sqrt(3)
+                step = L/C 
             else:
                 step = ods / (sigma*den) 
 #            print(den)
@@ -146,16 +143,16 @@ def odsSample(pos,sigma,omega,g,density,tol,khat):
 #                print('sky',pos)
                 return oda
                 
-            elif step < L/C * np.sqrt(3):
+            elif step < L/C:
                 odsp += sigma * den * step
                 pos = posUpdate(pos,khat,step)
 #                print('<',pos)
                 break
             
             else:    
-                odsp += sigma * den * L/C * np.sqrt(3)
-                pos = posUpdate(pos,khat,L/C * np.sqrt(3))
-                ods -= sigma * den * L/C * np.sqrt(3)
+                odsp += sigma * den * L/C
+                pos = posUpdate(pos,khat,L/C)
+                ods -= sigma * den * L/C
 #                print('>',pos)
             
         oda += (1/omega - 1)*odsp
@@ -163,7 +160,7 @@ def odsSample(pos,sigma,omega,g,density,tol,khat):
         
     return oda
 
-def monteCarlo(density,mat,lmbda,Aobs,M,tol,L):
+def monteCarlo(density,mat,lmbda,Aobs,M,tol,L,C):
     t0 = time.time()
     sigma,omega,g = matSci(lmbda,mat)
     intensities = np.zeros(Aobs.shape[0])        
@@ -175,7 +172,7 @@ def monteCarlo(density,mat,lmbda,Aobs,M,tol,L):
         for k in range(K): 
             for m in range(M):
                 pos = Aobs[a,:]
-                oda = odsSample(pos,sigma,omega,g,density,tol,Kobs[k])
+                oda = odsSample(pos,sigma,omega,g,density,tol,Kobs[k],C,L)
                 W[k,m] = np.exp(-oda)    
                     
         intensities[a] = 1/(K*M)*np.sum(W)           
