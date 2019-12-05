@@ -47,13 +47,13 @@ def hardWallBound(arr,L):
 
 def generateUniformCloud(D,N,L,C):
     dummy = np.zeros([1,3])
-    density = np.zeros([C,C,C]) +  1000
+    density = np.zeros([C,C,C]) +  13000
     return dummy , density
 
 def generateSampCloud(D,N,L,C):
     dummy = np.zeros([1,3])
     density = np.load('sampledensity.npy')
-    density *= 1e53 / (L/C)**3
+    density *= 1.3e53 / (L/C)**3
     return dummy , density
 
 def generateCloud(D,N,L,C):
