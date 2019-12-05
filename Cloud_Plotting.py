@@ -66,7 +66,7 @@ if __name__ == '__main__':
     if mat == 'test':
         Aobs = np.zeros([20,3]) + R
         for n in range(20):
-            Aobs[n,2] += 0.6*0.5*n / ((10*0.6 / (1000 * 0.5 * 3.086e18))*1000)
+            Aobs[n,2] += 0.6*n / ((20*0.6 / (1300 * 0.5 * 3.086e18))*1300)
     else:
         Aobs = np.loadtxt('Aobs.txt')
         Aobs *= (L/C)
