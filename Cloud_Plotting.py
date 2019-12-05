@@ -80,7 +80,7 @@ if __name__ == '__main__':
     
     tasks = []
     for i in range(pross):
-        tuple = (density,mat,lmbd,Obs_list[i],10,1e-2,L)
+        tuple = (density,mat,lmbd,Obs_list[i],10,1e-2,L,C)
         tasks.append(tuple)
     
 #    print(tasks)
