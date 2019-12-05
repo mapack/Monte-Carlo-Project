@@ -20,7 +20,7 @@ def matSci(lmbda,mat):
     if mat == 'test':
         albedo = 0.6
         g = 0.6
-        sigma = 10*0.6 / (1000 * 0.5 * 3.086e18)
+        sigma = 20*0.6 / (1300 * 0.5 * 3.086e18)
         
     else:
         #Loading model data
@@ -175,6 +175,10 @@ def monteCarlo(density,mat,lmbda,Aobs,M,tol,L,C):
                 oda = odsSample(pos,sigma,omega,g,density,tol,Kobs[k],C,L)
                 W[k,m] = np.exp(-oda)    
                     
-        intensities[a] = 1/(K*M)*np.sum(W)           
+        intensities[a] = 1/(K*M)*np.sum(W) 
+    
+    returnArr = np.zeros([Aobs.shape[0],4])
+    returnArr[:,0:3] = Aobs
+    returnArr[:,3] = intensities 
     print('time',(time.time()-t0))
-    return intensities
+    return returnArr
