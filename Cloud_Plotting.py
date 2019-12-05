@@ -37,6 +37,8 @@ if __name__ == '__main__':
     lmbd = args.lmbd 
     uniform = args.uniform
     sample = args.sample
+    
+    name = str(args.D) + str(args.L) + str(args.C) + str(args.N) + str(args.mat) + str(args.lmbd) + str(args.uniform) + str(args.sample)
 
     cloud, density = Cloud(D,N,L,C,uniform = uniform, sample = sample).point_array
     
@@ -89,7 +91,7 @@ if __name__ == '__main__':
     intensities = myPool.starmap(monteCarlo, tasks)
     
     intensityArr = np.concatenate(intensities).ravel()
-    np.savetxt('testintensity.txt',intensityArr)
+    np.savetxt('trail_%.txt' % name,intensityArr)
     
 #    intensity = monteCarlo(density,mat,lmbd,Aobs,10,1e-2,L)
 
