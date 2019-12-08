@@ -20,7 +20,7 @@ def matSci(lmbda,mat):
     if mat == 'test':
         albedo = 0.6
         g = 0.6
-        sigma = 20*0.6 / (1300 * 0.5 * 3.086e18)
+        sigma = 10*0.6 / (1300 * 0.5 * 3.086e18)
         
     else:
         #Loading model data
