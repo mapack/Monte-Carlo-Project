@@ -66,9 +66,12 @@ if __name__ == '__main__':
     if mat == 'test':
         Aobs = np.zeros([20,3]) + R
         for n in range(20):
-            Aobs[n,2] += 0.6*n / ((20*0.6 / (1300 * 0.5 * 3.086e18))*1300)
-    else:
-        Aobs = np.loadtxt('Aobs.txt')
+            Aobs[n,2] += 0.6*0.5*n / ((10*0.6 / (1300 * 0.5 * 3.086e18))*1300)
+    if mat = 'nopower':
+        Aobs = np.loadtxt('Aobs_nopower.txt')
+        Aobs *= (L/C)
+    if mat = 'power':
+        Aobs = np.loadtxt('Aobs_power.txt')
         Aobs *= (L/C)
         
     Aobs_size = Aobs.shape[0]
