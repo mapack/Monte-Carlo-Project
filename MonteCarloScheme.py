@@ -61,7 +61,10 @@ def genKobs(Aobs,L):
             Kobs[j,1] = 0.0
 #            print(Kobs[j,:])
         else:
-            Kobs[j,1] = np.arcsin((psphere[j,1]-Aobs[1])/((r)*np.sin(Kobs[j,0])))
+            if np.isnan(np.arcsin((psphere[j,1]-Aobs[1])/((r)*np.sin(Kobs[j,0])))):
+                Kobs[j,1] = np.pi/2
+            else:    
+                Kobs[j,1] = np.arcsin((psphere[j,1]-Aobs[1])/((r)*np.sin(Kobs[j,0])))
             if psphere[j,0] < L/2:
                 Kobs[j,1] = np.pi - Kobs[j,1]
 #            print(Kobs[j,:])
@@ -102,9 +105,10 @@ def interpolateDen(pos,density,axmin,axmax,C,khat):
     
     if sky(pos,axmax,1e-2) == 0:
         return density[i,j,k]
-        
+    
     posPrime = posUpdate(pos,khat,axmax/C)
     xprime,yprime,zprime = posPrime[0],posPrime[1],posPrime[2]
+#    print(khat)
 
     iprime = int((xprime-axmin)/(axmax-axmin)*(C-1.0))
     jprime = int((yprime-axmin)/(axmax-axmin)*(C-1.0))

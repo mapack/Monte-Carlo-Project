@@ -27,9 +27,8 @@ if __name__ == '__main__':
                         help="Uses uniform density if True (1)")
     parser.add_argument("sample",type=int,
                         help="Uses sample density if True (1)")
-    parser.add_argument("q",type=int,
-                        help="Portion of Aobs to use")
-    
+    parser.add_argument("idx",type=int,
+                        help="Which cut of Aobs to use")
     
     args = parser.parse_args()
     D = args.D
@@ -40,8 +39,8 @@ if __name__ == '__main__':
     lmbd = args.lmbd 
     uniform = args.uniform
     sample = args.sample
-    q = args.q
-
+    idx = args.idx
+    
     cloud, density = Cloud(D,N,L,C,uniform = uniform, sample = sample).point_array
     
 #    print(density)
@@ -69,16 +68,16 @@ if __name__ == '__main__':
         Aobs = np.zeros([20,3]) + R
         for n in range(20):
             Aobs[n,2] += 0.6*0.5*n / ((10*0.6 / (1300 * 0.5 * 3.086e18))*1300)
-   if mat == 'nopower':
+    if mat == 'nopower':
         Aobs = np.loadtxt('Aobs_nopower.txt')
-		Aobs_list = np.array_split(Aobs,80)
-		Aobs = Aobs_list[q]
         Aobs *= (L/C)
+        Aobs_arr = np.array_split(Aobs,80)
+        Aobs = Aobs_arr[idx]
     if mat == 'power':
         Aobs = np.loadtxt('Aobs_power.txt')
-        Aobs_list = np.array_split(Aobs,80)
-		Aobs = Aobs_list[q]
         Aobs *= (L/C)
+        Aobs_arr = np.array_split(Aobs,80)
+        Aobs = Aobs_arr[idx]
         
     Aobs_size = Aobs.shape[0]
     
@@ -98,8 +97,8 @@ if __name__ == '__main__':
     
     myPool = mp.Pool(pross)
     intensities = myPool.starmap(monteCarlo, tasks)
-    filename = "Aobs" + str(q) + ".txt"
     
+    filename = "Aobs" + str(idx) + ".txt"
     intensityArr = np.concatenate(intensities).ravel()
     np.savetxt(filename,intensityArr)
     
