@@ -10,6 +10,8 @@ Cloud_Plotting.py is the main program to run
     - uniform = 0 or 1, uniform density if 1
     - sample = 0 or 1, sample non-uniform density if 1
     - idx = portion of observation points to be tested (used for parallel computing on Longleaf)
+    
+Program outputs a .txt file containing a 1D array. Array gives the x,y,z coordinates of a point followed by the intensity of that point (x0,y0,z0,I0,x1,y1,z1,I1,...).
 
 For our uniform cloud test, we ran Cloud_Plotting with the arguements: 
 
