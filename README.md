@@ -1,5 +1,6 @@
 # Monte-Carlo-Project
 Cloud_Plotting.py is the main program to run
+
     - Accepts arguments D, L, C, N, mat, lmbda, uniform, sample, idx
     - D = cloud fractal dimension
     - L = length of supercube (cm)
