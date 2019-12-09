@@ -21,4 +21,4 @@ For our uniform cloud test, we ran Cloud_Plotting with the arguements:
 
 For our non-uniform cloud test, we ran Cloud_Plotting with the arguments: 
 
-     2.6 3.086e18 64 32 nopower 0.55 0 1 (whichever portion of Aobs 0-79 we were doing)
+     2.6 3.086e18 64 32 nopower 0.55 0 1 *whichever portion of Aobs 0-79 we were doing*
