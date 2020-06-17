@@ -1,6 +1,8 @@
 # Monte-Carlo-Project
 Mason Pack, Dylan Owens, Dennis Schimtzek
 
+See Report.pdf for the complete report on the project.
+
 Cloud_Plotting.py is the main program to run
 
 - Accepts arguments D, L, C, N, mat, lmbda, uniform, sample, idx
